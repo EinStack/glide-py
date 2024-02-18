@@ -1,5 +1,5 @@
 <div align="center">
-    <img loading="lazy" src="https://raw.githubusercontent.com/EinStack/glide-python/blob/main/docs/glide_logo.png" alt="Glide Logo" width="200px" height="200px" />
+    <img loading="lazy" src="https://github.com/EinStack/glide-python/blob/main/docs/glide_logo.png?raw=1" alt="Glide Logo" width="200px" height="200px" />
     <h1>Glide Python Client</h1>
     <p>🐍 An official Python client for <a href="https://github.com/EinStack/glide">Glide, an open reliable fast model gateway</a>.</p>
     <a href="https://discord.gg/pt53Ej7rrc"><img src="https://img.shields.io/discord/1181281407813828710" alt="Discord" /></a>
