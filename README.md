@@ -16,6 +16,11 @@
 > [!Important]
 > Give us a star⭐ to support the project and watch👀 our repositories not to miss any update
 
+## Features
+
+- 🐍Modern typed Python with [Pydantic-based](https://github.com/pydantic/pydantic) data classes
+- Sync and asyncio support
+
 ## Installation
 
 Coming soon
