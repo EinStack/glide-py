@@ -1,6 +1,6 @@
 [project]
 name = "glide-client"
-version = "0.0.1-alpha.2"
+version = "0.0.1-alpha.3"
 description = "An official Python client for Glide, an open resilient fast model gateway"
 license = {text = "Apache-2.0"}
 authors = [
