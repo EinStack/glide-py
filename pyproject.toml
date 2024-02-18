@@ -1,0 +1,33 @@
+[project]
+name = "glide-client"
+version = "0.0.1-alpha.1"
+description = "An official Python client for Glide, an open resilient fast model gateway"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Roman Hlushko", email = "roman@einstack.ai"},
+]
+
+readme = "README.md"
+keywords = [
+    "llm",
+    "llmops",
+    "gateway",
+    "infrastructure",
+]
+
+dependencies = [
+    "httpx>=0.26.0",
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://glide.einstack.ai/"
+Documentation = "https://glide.einstack.ai/"
+Repository = "https://github.com/me/spam.git"
+Issues = "https://github.com/EinStack/glide-python"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "ruff>=0.2.2",
+    "mypy>=1.8.0",
+]
