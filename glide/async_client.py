@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: APACHE-2.0
 import httpx
 
-from glide.lang.router_async import AsyncRouters
+from glide.lang.router_async import AsyncLangRouters
 
 
-class GlideClient:
+class AsyncGlideClient:
     """
     Asynchronous Glide client
     """
@@ -22,8 +22,9 @@ class GlideClient:
 
         self._client = httpx.AsyncClient(base_url=self._base_url)
 
-    def lang(self) -> AsyncRouters:
+    @property
+    def lang(self) -> AsyncLangRouters:
         """
         Access Glide's Language API
         """
-        return AsyncRouters(http_client=self._client)
+        return AsyncLangRouters(http_client=self._client)

@@ -1,0 +1,14 @@
+# Copyright EinStack
+# SPDX-License-Identifier: APACHE-2.0
+telemetry:
+  logging:
+    level: debug
+    encoding: console
+
+routers:
+  language:
+    - id: default
+      models:
+        - id: openai
+          openai:
+            api_key: "${env:OPENAI_API_KEY}"

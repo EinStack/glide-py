@@ -18,7 +18,9 @@ class AsyncLangRouters:
         ...
 
     # TODO: expose timeout config here, too
-    async def chat(self, router_id: str, request: schemas.ChatRequest) -> schemas.ChatResponse:
+    async def chat(
+        self, router_id: str, request: schemas.ChatRequest
+    ) -> schemas.ChatResponse:
         """
         Send a chat request to a specified language router
         """
@@ -31,5 +33,4 @@ class AsyncLangRouters:
 
         return schemas.ChatResponse(**resp.json())
 
-    async def chat_stream(self, router_id: str):
-        ...
+    async def chat_stream(self, router_id: str): ...

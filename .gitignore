@@ -3,4 +3,5 @@
 .pdm-python
 dist
 build
+tmp
 *.egg-info
