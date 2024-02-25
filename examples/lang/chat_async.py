@@ -12,19 +12,24 @@ router_id: str = "default"  # defined in Glide config (see glide.config.yaml)
 async def chat() -> None:
     glide_client = AsyncGlideClient(base_url="http://127.0.0.1:9099/v1/")
 
-    started_at = time.monotonic_ns()
+    question = "What's the capital of Germany?"
+
+    started_at = time.perf_counter()
     response = await glide_client.lang.chat(
         router_id=router_id,
         request=ChatRequest(
             message=ChatMessage(
-                content="What's the capital of Germany?",
+                content=question,
                 role="user",
             ),
         ),
     )
 
-    print("💬Model Response: ", response.model_response.message.content)
-    print("⏱️Response Time: ", time.monotonic_ns() - started_at, "ns")
+    duration_ms = (time.perf_counter() - started_at) * 1000
+
+    print(f"💬Question: {question}")
+    print(f"💬Answer: {response.model_response.message.content}")
+    print(f"⏱️Response Time: {duration_ms:.2f}ms")
 
 
 if __name__ == "__main__":

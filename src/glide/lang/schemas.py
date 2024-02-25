@@ -3,50 +3,53 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from glide.schames import Schema
 
 
-class LangRouter(BaseModel): ...
+class LangRouter(Schema): ...
 
 
-class ChatMessage(BaseModel):
+class ChatMessage(Schema):
     content: str
     role: str
     name: Optional[str] = None
 
 
-class ModelMessageOverride(BaseModel):
+class ModelMessageOverride(Schema):
     """
     Allows to override a message that is asked if the specific model ends up serving the chat request
     """
 
-    model_id: str
+    model: str
     message: ChatMessage
 
 
-class ChatRequest(BaseModel):
+class ChatRequest(Schema):
     message: ChatMessage
     message_history: List[ChatMessage] = Field(default_factory=list)
     override: Optional[ModelMessageOverride] = None
 
 
-class TokenUsage(BaseModel):
+class TokenUsage(Schema):
     prompt_tokens: float
     response_tokens: float
     total_tokens: float
 
 
-class ModelResponse(BaseModel):
-    system_id: dict[str, str]
+class ModelResponse(Schema):
+    response_id: dict[str, str]
     message: ChatMessage
-    token_usage: TokenUsage
+    token_count: TokenUsage
 
 
-class ChatResponse(BaseModel):
+class ChatResponse(Schema):
     id: str
     created: datetime
     provider: str
-    router_id: str
+    router: str
+    model_id: str
     model: str
-    cached: bool
+    cached: bool = False
     model_response: ModelResponse
