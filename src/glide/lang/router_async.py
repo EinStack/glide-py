@@ -4,6 +4,7 @@ from typing import List
 
 import httpx
 
+from glide.exceptions import GlideUnavailable
 from glide.lang import schemas
 
 
@@ -24,13 +25,14 @@ class AsyncLangRouters:
         """
         Send a chat request to a specified language router
         """
-        resp = await self._http_client.post(
-            f"/language/{router_id}/chat",
-            data=request.dict(),
-        )
+        try:
+            resp = await self._http_client.post(
+                f"/language/{router_id}/chat",
+                data=request.dict(),
+            )
 
-        # TODO: think about useful error cases to handle here.
-
-        return schemas.ChatResponse(**resp.json())
+            return schemas.ChatResponse(**resp.json())
+        except httpx.NetworkError as e:
+            raise GlideUnavailable() from e
 
     async def chat_stream(self, router_id: str): ...

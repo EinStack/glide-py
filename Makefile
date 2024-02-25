@@ -1,4 +1,4 @@
-SOURCE?=glide examples
+SOURCE?=src/glide examples
 TESTS?=tests
 
 .PHONY: help

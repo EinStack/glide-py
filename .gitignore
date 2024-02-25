@@ -4,4 +4,5 @@
 dist
 build
 tmp
+__pycache__
 *.egg-info

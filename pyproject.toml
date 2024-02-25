@@ -34,3 +34,10 @@ dev = [
     "mypy>=1.8.0",
     "black>=24.2.0",
 ]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true

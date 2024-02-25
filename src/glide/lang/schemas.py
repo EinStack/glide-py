@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class LangRouter(BaseModel): ...
@@ -26,8 +26,8 @@ class ModelMessageOverride(BaseModel):
 
 class ChatRequest(BaseModel):
     message: ChatMessage
-    message_history: List[ChatMessage]
-    override: Optional[ModelMessageOverride]
+    message_history: List[ChatMessage] = Field(default_factory=list)
+    override: Optional[ModelMessageOverride] = None
 
 
 class TokenUsage(BaseModel):
