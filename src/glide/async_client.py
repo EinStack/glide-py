@@ -19,12 +19,16 @@ class AsyncGlideClient:
         :param base_url: str The base URL of Glide API (by default, local API is under http://127.0.0.1:9099/v1/)
         """
         self._base_url = base_url
-
         self._client = httpx.AsyncClient(base_url=self._base_url)
+
+        self._lang_routers = AsyncLangRouters(
+            base_url=self._base_url,
+            http_client=self._client,
+        )
 
     @property
     def lang(self) -> AsyncLangRouters:
         """
         Access Glide's Language API
         """
-        return AsyncLangRouters(http_client=self._client)
+        return self._lang_routers

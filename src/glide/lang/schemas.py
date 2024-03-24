@@ -1,11 +1,19 @@
 # Copyright EinStack
 # SPDX-License-Identifier: APACHE-2.0
+import uuid
 from datetime import datetime
-from typing import List, Optional
+from enum import Enum
+from typing import List, Optional, Dict, Any, Union
 
 from pydantic import Field
 
 from glide.schames import Schema
+
+Metadata = Dict[str, Any]
+
+
+class FinishReason(str, Enum):
+    COMPLETE = "complete"
 
 
 class LangRouter(Schema): ...
@@ -51,5 +59,42 @@ class ChatResponse(Schema):
     router: str
     model_id: str
     model: str
-    cached: bool = False
     model_response: ModelResponse
+
+
+class StreamChatRequest(Schema):
+    id: str = Field(default_factory=uuid.uuid4)
+    message: ChatMessage
+    message_history: List[ChatMessage] = Field(default_factory=list)
+    override: Optional[ModelMessageOverride] = None
+    metadata: Optional[Metadata] = None
+
+
+class ModelChunkResponse(Schema):
+    metadata: Optional[Metadata] = None
+    message: ChatMessage
+    finish_reason: Optional[FinishReason] = None
+
+
+class ChatStreamChunk(Schema):
+    """
+    A response chunk of a streaming chat
+    """
+    id: str
+    created: datetime
+    provider: str
+    router: str
+    model_id: str
+    model: str
+    metadata: Optional[Metadata] = None
+    model_response: ModelChunkResponse
+
+
+class ChatStreamError(Schema):
+    id: str
+    err_code: str
+    message: str
+    metadata: Optional[Metadata] = None
+
+
+StreamResponse = Union[ChatStreamChunk, ChatStreamError]
