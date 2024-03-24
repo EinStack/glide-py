@@ -13,7 +13,7 @@ Before running any particular example, you need to start a Glide instance locall
 Various examples of interacting with Glide's Language API:
 
 - [Asyncio Non-Streaming Chat Example](https://github.com/EinStack/glide-python/blob/main/examples/lang/chat_async.py)
-- [Asyncio Streaming Chat Example]()
+- [Asyncio Streaming Chat Example](https://github.com/EinStack/glide-python/blob/main/examples/lang/chat_stream_async.py)
 
 ## Ready for more?
 

@@ -80,6 +80,7 @@ class ChatStreamChunk(Schema):
     """
     A response chunk of a streaming chat
     """
+
     id: str
     created: datetime
     provider: str

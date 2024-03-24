@@ -1,6 +1,7 @@
 .idea
 .venv
 .pdm-python
+.pdm-build
 dist
 build
 tmp
