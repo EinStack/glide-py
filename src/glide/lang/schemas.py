@@ -8,12 +8,17 @@ from typing import List, Optional, Dict, Any, Union
 from pydantic import Field
 
 from glide.schames import Schema
+from glide.typing import RouterId, ProviderName, ModelName
 
+ChatRequestId = str
 Metadata = Dict[str, Any]
 
 
 class FinishReason(str, Enum):
-    COMPLETE = "complete"
+    COMPLETE = "complete"  # generation is finished successfully without interruptions
+    LENGTH = (
+        "length"  # generation is interrupted because of the length of the response text
+    )
 
 
 class LangRouter(Schema): ...
@@ -41,9 +46,9 @@ class ChatRequest(Schema):
 
 
 class TokenUsage(Schema):
-    prompt_tokens: float
-    response_tokens: float
-    total_tokens: float
+    prompt_tokens: int
+    response_tokens: int
+    total_tokens: int
 
 
 class ModelResponse(Schema):
@@ -53,17 +58,17 @@ class ModelResponse(Schema):
 
 
 class ChatResponse(Schema):
-    id: str
+    id: ChatRequestId
     created: datetime
-    provider: str
-    router: str
+    provider: ProviderName
+    router: RouterId
     model_id: str
-    model: str
+    model: ModelName
     model_response: ModelResponse
 
 
 class StreamChatRequest(Schema):
-    id: str = Field(default_factory=uuid.uuid4)
+    id: ChatRequestId = Field(default_factory=lambda: str(uuid.uuid4()))
     message: ChatMessage
     message_history: List[ChatMessage] = Field(default_factory=list)
     override: Optional[ModelMessageOverride] = None
@@ -81,18 +86,20 @@ class ChatStreamChunk(Schema):
     A response chunk of a streaming chat
     """
 
-    id: str
-    created: datetime
-    provider: str
-    router: str
+    id: ChatRequestId
+    # TODO: should be required, needs to fix on the Glide side
+    created: Optional[datetime] = None
+    provider: Optional[ProviderName] = None
+    router: Optional[RouterId] = None
+    model: Optional[ModelName] = None
+
     model_id: str
-    model: str
     metadata: Optional[Metadata] = None
     model_response: ModelChunkResponse
 
 
 class ChatStreamError(Schema):
-    id: str
+    id: ChatRequestId
     err_code: str
     message: str
     metadata: Optional[Metadata] = None
