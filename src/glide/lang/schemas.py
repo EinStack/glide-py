@@ -26,7 +26,7 @@ class LangRouter(Schema): ...
 
 class ChatMessage(Schema):
     content: str
-    role: str
+    role: str  # TODO: make it optional and default
     name: Optional[str] = None
 
 
