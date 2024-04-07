@@ -13,8 +13,8 @@ async def chat() -> None:
     glide_client = AsyncGlideClient(base_url="http://127.0.0.1:9099/v1/")
 
     question = "What's the capital of Germany?"
-
     started_at = time.perf_counter()
+
     response = await glide_client.lang.chat(
         router_id=router_id,
         request=ChatRequest(

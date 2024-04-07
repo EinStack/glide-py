@@ -15,10 +15,10 @@ Metadata = Dict[str, Any]
 
 
 class FinishReason(str, Enum):
-    COMPLETE = "complete"  # generation is finished successfully without interruptions
-    LENGTH = (
-        "length"  # generation is interrupted because of the length of the response text
-    )
+    # generation is finished successfully without interruptions
+    COMPLETE = "complete"
+    # generation is interrupted because of the length of the response text
+    LENGTH = "length"
 
 
 class LangRouter(Schema): ...
