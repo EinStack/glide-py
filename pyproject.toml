@@ -1,11 +1,12 @@
 [project]
 name = "glide-client"
-version = "0.0.1-alpha.3"
 description = "An official Python client for Glide, an open resilient fast model gateway"
 license = {text = "Apache-2.0"}
 authors = [
     {name = "Roman Hlushko", email = "roman@einstack.ai"},
 ]
+
+dynamic = ["version"]
 
 readme = "README.md"
 keywords = [
@@ -28,8 +29,36 @@ Documentation = "https://glide.einstack.ai/"
 Repository = "https://github.com/me/spam.git"
 Issues = "https://github.com/EinStack/glide-python"
 
+[tool.pdm.version]
+source = "scm"
+write_to = "glide/version.py"
+write_template = """
+# Copyright EinStack
+# SPDX-License-Identifier: APACHE-2.0
+import sys
+from typing import Final
+
+
+PYTHON_VERSION: Final[str] = ".".join(
+    (
+        str(sys.version_info.major),
+        str(sys.version_info.minor),
+        str(sys.version_info.micro),
+    )
+)
+__version__: Final[str] = "{}"
+"""
+
 [tool.pdm.dev-dependencies]
 dev = [
     "ruff>=0.2.2",
     "mypy>=1.8.0",
+    "black>=24.2.0",
 ]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true

@@ -1,6 +1,9 @@
 .idea
 .venv
 .pdm-python
+.pdm-build
 dist
 build
+tmp
+__pycache__
 *.egg-info

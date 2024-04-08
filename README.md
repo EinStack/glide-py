@@ -19,7 +19,7 @@
 ## Features
 
 - 🐍 Modern typed Python with [Pydantic-based](https://github.com/pydantic/pydantic) data classes
-- 🛠️ Sync and asyncio support
+- 🛠️ Sync (soon) and asyncio support
 - 🎭 Easily mockable in tests
 
 ## Installation
