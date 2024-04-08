@@ -2,11 +2,7 @@
 
 ## Get Glide Up
 
-Before running any particular example, you need to start a Glide instance locally via docker:
-
-```bash
-
-```
+Before running any particular example, you need to [start a Glide instance locally via Docker Compose](https://github.com/EinStack/glide-demo).
 
 ## Examples
 
