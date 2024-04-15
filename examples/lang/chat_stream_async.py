@@ -14,7 +14,7 @@ from glide.lang.schemas import (
 )
 
 router_id: str = "default"  # defined in Glide config (see glide.config.yaml)
-question = "What are the kosher species?"
+question = "What is the capital of Greenland?"
 
 
 async def chat_stream() -> None:

@@ -87,13 +87,11 @@ class ChatStreamChunk(Schema):
     """
 
     id: ChatRequestId
-    # TODO: should be required, needs to fix on the Glide side
-    created: Optional[datetime] = None
-    provider: Optional[ProviderName] = None
-    router: Optional[RouterId] = None
-    model: Optional[ModelName] = None
-
+    provider_id: ProviderName
+    router_id: RouterId
     model_id: str
+
+    model_name: ModelName
     metadata: Optional[Metadata] = None
     model_response: ModelChunkResponse
 

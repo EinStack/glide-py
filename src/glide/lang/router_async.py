@@ -16,6 +16,7 @@ from websockets import WebSocketClientProtocol
 from glide.exceptions import GlideUnavailable, GlideClientError, GlideClientMismatch
 from glide.lang import schemas
 from glide.lang.schemas import StreamChatRequest, StreamResponse, ChatRequestId
+from glide.logging import logger
 from glide.typing import RouterId
 
 
@@ -59,6 +60,7 @@ class AsyncStreamChatClient:
 
     async def chat_stream(
         self, req: StreamChatRequest
+        # TODO: add timeout
     ) -> AsyncGenerator[StreamResponse, None]:
         chunk_buffer: asyncio.Queue[StreamResponse] = asyncio.Queue()
         self._response_streams[req.id] = chunk_buffer
@@ -109,16 +111,21 @@ class AsyncStreamChatClient:
                         json.loads(raw_chunk),
                     )
 
+                    logger.debug("received stream chunk", extra={"chunk": chunk})
+
                     if chunk_buffer := self._response_streams.get(chunk.id):
                         chunk_buffer.put_nowait(chunk)
                         continue
 
                     self.response_chunks.put_nowait(chunk)
-                except pydantic.ValidationError as e:
-                    raise GlideClientMismatch(
+                except pydantic.ValidationError:
+                    logger.error(
                         "Failed to validate Glide API response. "
-                        "Please make sure Glide API and client versions are compatible"
-                    ) from e
+                        "Please make sure Glide API and client versions are compatible",
+                        exc_info=True
+                    )
+                except Exception as e:
+                    logger.exception(e)
         except asyncio.CancelledError:
             ...
 
