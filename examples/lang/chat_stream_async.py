@@ -38,8 +38,8 @@ async def chat_stream() -> None:
                 print(f"💥err: {err.message} (code: {err.err_code})")
                 continue
 
-            if chunk := message.chunk:
-                print(chunk.model_response.message.content, end="", flush=True)
+            if content_chunk := message.content_chunk:
+                print(content_chunk, end="", flush=True)
                 continue
 
             raise RuntimeError(f"unknown message type: {last_msg}")

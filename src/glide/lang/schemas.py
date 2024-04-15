@@ -111,3 +111,10 @@ class ChatStreamMessage(Schema):
 
     chunk: Optional[ChatStreamChunk] = None
     error: Optional[ChatStreamError] = None
+
+    @property
+    def content_chunk(self) -> Optional[str]:
+        if not self.chunk:
+            return None
+
+        return self.chunk.model_response.message.content
