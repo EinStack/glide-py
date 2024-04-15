@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 
 from pydantic import Field
 
@@ -18,7 +18,9 @@ class FinishReason(str, Enum):
     # generation is finished successfully without interruptions
     COMPLETE = "complete"
     # generation is interrupted because of the length of the response text
-    LENGTH = "length"
+    MAX_TOKENS = "max_tokens"
+    CONTENT_FILTERED = "content_filtered"
+    OTHER = "other"
 
 
 class LangRouter(Schema): ...
@@ -67,7 +69,7 @@ class ChatResponse(Schema):
     model_response: ModelResponse
 
 
-class StreamChatRequest(Schema):
+class ChatStreamRequest(Schema):
     id: ChatRequestId = Field(default_factory=lambda: str(uuid.uuid4()))
     message: ChatMessage
     message_history: List[ChatMessage] = Field(default_factory=list)
@@ -78,7 +80,6 @@ class StreamChatRequest(Schema):
 class ModelChunkResponse(Schema):
     metadata: Optional[Metadata] = None
     message: ChatMessage
-    finish_reason: Optional[FinishReason] = None
 
 
 class ChatStreamChunk(Schema):
@@ -86,21 +87,27 @@ class ChatStreamChunk(Schema):
     A response chunk of a streaming chat
     """
 
-    id: ChatRequestId
-    provider_id: ProviderName
-    router_id: RouterId
     model_id: str
 
+    provider_name: ProviderName
     model_name: ModelName
-    metadata: Optional[Metadata] = None
+
     model_response: ModelChunkResponse
+    finish_reason: Optional[FinishReason] = None
 
 
 class ChatStreamError(Schema):
     id: ChatRequestId
     err_code: str
     message: str
+
+
+class ChatStreamMessage(Schema):
+    id: ChatRequestId
+    created_at: datetime
     metadata: Optional[Metadata] = None
 
+    router_id: RouterId
 
-StreamResponse = Union[ChatStreamChunk, ChatStreamError]
+    chunk: Optional[ChatStreamChunk] = None
+    error: Optional[ChatStreamError] = None

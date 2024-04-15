@@ -6,15 +6,13 @@ from typing import Optional
 
 from glide import AsyncGlideClient
 from glide.lang.schemas import (
-    ChatStreamError,
-    StreamChatRequest,
+    ChatStreamRequest,
     ChatMessage,
-    StreamResponse,
-    ChatStreamChunk,
+    ChatStreamMessage,
 )
 
 router_id: str = "default"  # defined in Glide config (see glide.config.yaml)
-question = "What is the capital of Greenland?"
+question = "How are you?"
 
 
 async def chat_stream() -> None:
@@ -23,31 +21,45 @@ async def chat_stream() -> None:
     print(f"💬Question: {question}")
     print("💬Answer: ", end="")
 
-    last_chunk: Optional[StreamResponse] = None
-    chat_req = StreamChatRequest(message=ChatMessage(role="user", content=question))
+    last_msg: Optional[ChatStreamMessage] = None
+    chat_req = ChatStreamRequest(message=ChatMessage(role="user", content=question))
 
     started_at = time.perf_counter()
     first_chunk_recv_at: Optional[float] = None
 
     async with glide_client.lang.stream_client(router_id) as client:
-        async for chunk in client.chat_stream(chat_req):
+        async for message in client.chat_stream(chat_req):
             if not first_chunk_recv_at:
                 first_chunk_recv_at = time.perf_counter()
 
-            if isinstance(chunk, ChatStreamError):
-                print(f"💥err: {chunk.message} (code: {chunk.err_code})")
+            last_msg = message
+
+            if err := message.error:
+                print(f"💥err: {err.message} (code: {err.err_code})")
                 continue
 
-            print(chunk.model_response.message.content, end="")
-            last_chunk = chunk
+            if chunk := message.chunk:
+                print(chunk.model_response.message.content, end="", flush=True)
+                continue
 
-    if last_chunk:
-        if isinstance(last_chunk, ChatStreamChunk):
-            if reason := last_chunk.model_response.finish_reason:
-                print(f"\n✅ Generation is done (reason: {reason.value})")
+            raise RuntimeError(f"unknown message type: {last_msg}")
 
-        if isinstance(last_chunk, ChatStreamError):
-            print(f"\n💥 Generation ended up with error (reason: {last_chunk.message})")
+    if last_msg:
+        if last_chunk := last_msg.chunk:
+            if reason := last_chunk.finish_reason:
+                print(
+                    f"\n\n✅ Generation is done "
+                    f"(provider: {last_chunk.provider_name}, model: {last_chunk.model_name}, reason: {reason.value})"
+                )
+
+                print(
+                    f"👀Glide Context (router_id: {last_msg.router_id}, model_id: {last_chunk.model_id})"
+                )
+
+        if err := last_msg.error:
+            print(
+                f"\n💥 Generation ended up with error (reason: {err.message}, code: {err.err_code})"
+            )
 
     first_chunk_duration_ms: float = 0
 

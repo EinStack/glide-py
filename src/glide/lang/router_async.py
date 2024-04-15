@@ -15,7 +15,7 @@ from websockets import WebSocketClientProtocol
 
 from glide.exceptions import GlideUnavailable, GlideClientError, GlideClientMismatch
 from glide.lang import schemas
-from glide.lang.schemas import StreamChatRequest, StreamResponse, ChatRequestId
+from glide.lang.schemas import ChatStreamRequest, ChatStreamMessage, ChatRequestId
 from glide.logging import logger
 from glide.typing import RouterId
 
@@ -43,9 +43,11 @@ class AsyncStreamChatClient:
 
         self._handlers = handlers
 
-        self.requests: asyncio.Queue[StreamChatRequest] = asyncio.Queue()
-        self.response_chunks: asyncio.Queue[StreamResponse] = asyncio.Queue()
-        self._response_streams: Dict[ChatRequestId, asyncio.Queue[StreamResponse]] = {}
+        self.requests: asyncio.Queue[ChatStreamRequest] = asyncio.Queue()
+        self.response_chunks: asyncio.Queue[ChatStreamMessage] = asyncio.Queue()
+        self._response_streams: Dict[
+            ChatRequestId, asyncio.Queue[ChatStreamMessage]
+        ] = {}
 
         self._sender_task: Optional[asyncio.Task] = None
         self._receiver_task: Optional[asyncio.Task] = None
@@ -55,25 +57,26 @@ class AsyncStreamChatClient:
         self._ping_interval = ping_interval
         self._close_timeout = close_timeout
 
-    def request_chat(self, chat_request: StreamChatRequest) -> None:
+    def request_chat(self, chat_request: ChatStreamRequest) -> None:
         self.requests.put_nowait(chat_request)
 
     async def chat_stream(
-        self, req: StreamChatRequest
+        self,
+        req: ChatStreamRequest,
         # TODO: add timeout
-    ) -> AsyncGenerator[StreamResponse, None]:
-        chunk_buffer: asyncio.Queue[StreamResponse] = asyncio.Queue()
-        self._response_streams[req.id] = chunk_buffer
+    ) -> AsyncGenerator[ChatStreamMessage, None]:
+        msg_buffer: asyncio.Queue[ChatStreamMessage] = asyncio.Queue()
+        self._response_streams[req.id] = msg_buffer
 
         self.request_chat(req)
 
         while True:
-            chunk = await chunk_buffer.get()
+            chunk = await msg_buffer.get()
 
             yield chunk
 
             # TODO: handle stream end on error
-            if chunk.model_response.finish_reason:
+            if chunk.chunk and chunk.chunk.finish_reason:
                 break
 
         self._response_streams.pop(req.id, None)
@@ -106,9 +109,8 @@ class AsyncStreamChatClient:
             while self._ws_client and self._ws_client.open:
                 try:
                     raw_chunk = await self._ws_client.recv()
-                    chunk: StreamResponse = pydantic.parse_obj_as(
-                        StreamResponse,
-                        json.loads(raw_chunk),
+                    chunk: ChatStreamMessage = ChatStreamMessage(
+                        **json.loads(raw_chunk)
                     )
 
                     logger.debug("received stream chunk", extra={"chunk": chunk})
@@ -122,7 +124,7 @@ class AsyncStreamChatClient:
                     logger.error(
                         "Failed to validate Glide API response. "
                         "Please make sure Glide API and client versions are compatible",
-                        exc_info=True
+                        exc_info=True,
                     )
                 except Exception as e:
                     logger.exception(e)
