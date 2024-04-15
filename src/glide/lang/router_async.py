@@ -80,8 +80,7 @@ class AsyncStreamChatClient:
                 message = await msg_buffer.get()
 
                 if err := message.ended_with_err:
-                    # fail only on fatal errors that indicates stream stop
-
+                    # fail only on fatal errors that indicate stream stop
                     raise GlideChatStreamError(
                         f"Chat stream {req.id} ended with an error: {err.message} (code: {err.err_code})",
                         err.err_code,
@@ -89,7 +88,7 @@ class AsyncStreamChatClient:
 
                 yield message  # returns content chunk and some error messages
 
-                if message.chunk and message.chunk.finish_reason:
+                if message.finish_reason:
                     break
         finally:
             self._response_streams.pop(req.id, None)
@@ -115,21 +114,21 @@ class AsyncStreamChatClient:
                 await self._ws_client.send(chat_request.json())
             except asyncio.CancelledError:
                 # TODO: log
-                ...
+                break
 
     async def _receiver(self) -> None:
         while self._ws_client and self._ws_client.open:
             try:
                 raw_chunk = await self._ws_client.recv()
-                chunk: ChatStreamMessage = ChatStreamMessage(**json.loads(raw_chunk))
+                message: ChatStreamMessage = ChatStreamMessage(**json.loads(raw_chunk))
 
-                logger.debug("received stream chunk", extra={"chunk": chunk})
+                logger.debug("received chat stream message", extra={"message": message})
 
-                if chunk_buffer := self._response_streams.get(chunk.id):
-                    chunk_buffer.put_nowait(chunk)
+                if msg_buffer := self._response_streams.get(message.id):
+                    msg_buffer.put_nowait(message)
                     continue
 
-                self.response_chunks.put_nowait(chunk)
+                self.response_chunks.put_nowait(message)
             except pydantic.ValidationError:
                 logger.error(
                     "Failed to validate Glide API response. "
@@ -137,7 +136,7 @@ class AsyncStreamChatClient:
                     exc_info=True,
                 )
             except asyncio.CancelledError:
-                ...
+                break
             except Exception as e:
                 logger.exception(e)
 

@@ -133,6 +133,13 @@ class ChatStreamMessage(Schema):
 
     @property
     def content_chunk(self) -> Optional[str]:
+        """
+        Returns received text generation chunk.
+
+        Be careful with using this method to see if there is a chunk (rather than an error),
+        because content can be an empty string with some providers like OpenAI.
+        Better check for `self.chunk` in that case.
+        """
         if not self.chunk:
             return None
 
