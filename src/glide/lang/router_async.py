@@ -141,6 +141,7 @@ class AsyncStreamChatClient:
                 logger.exception(e)
 
     async def stop(self) -> None:
+        # TODO: allow to timeout shutdown too
         if self._sender_task:
             self._sender_task.cancel()
             await self._sender_task
