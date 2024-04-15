@@ -20,6 +20,7 @@ class FinishReason(str, Enum):
     # generation is interrupted because of the length of the response text
     MAX_TOKENS = "max_tokens"
     CONTENT_FILTERED = "content_filtered"
+    ERROR = "error"
     OTHER = "other"
 
 
@@ -100,6 +101,7 @@ class ChatStreamError(Schema):
     id: ChatRequestId
     err_code: str
     message: str
+    finish_reason: Optional[FinishReason] = None
 
 
 class ChatStreamMessage(Schema):
@@ -111,6 +113,23 @@ class ChatStreamMessage(Schema):
 
     chunk: Optional[ChatStreamChunk] = None
     error: Optional[ChatStreamError] = None
+
+    @property
+    def finish_reason(self) -> Optional[FinishReason]:
+        if self.chunk and self.chunk.finish_reason:
+            return self.chunk.finish_reason
+
+        if self.error and self.error.finish_reason:
+            return self.error.finish_reason
+
+        return None
+
+    @property
+    def ended_with_err(self) -> Optional[ChatStreamError]:
+        if self.error and self.error.finish_reason:
+            return self.error
+
+        return None
 
     @property
     def content_chunk(self) -> Optional[str]:

@@ -13,7 +13,12 @@ import websockets
 
 from websockets import WebSocketClientProtocol
 
-from glide.exceptions import GlideUnavailable, GlideClientError, GlideClientMismatch
+from glide.exceptions import (
+    GlideUnavailable,
+    GlideClientError,
+    GlideClientMismatch,
+    GlideChatStreamError,
+)
 from glide.lang import schemas
 from glide.lang.schemas import ChatStreamRequest, ChatStreamMessage, ChatRequestId
 from glide.logging import logger
@@ -70,16 +75,24 @@ class AsyncStreamChatClient:
 
         self.request_chat(req)
 
-        while True:
-            chunk = await msg_buffer.get()
+        try:
+            while True:
+                message = await msg_buffer.get()
 
-            yield chunk
+                if err := message.ended_with_err:
+                    # fail only on fatal errors that indicates stream stop
 
-            # TODO: handle stream end on error
-            if chunk.chunk and chunk.chunk.finish_reason:
-                break
+                    raise GlideChatStreamError(
+                        f"Chat stream {req.id} ended with an error: {err.message} (code: {err.err_code})",
+                        err.err_code,
+                    )
 
-        self._response_streams.pop(req.id, None)
+                yield message  # returns content chunk and some error messages
+
+                if message.chunk and message.chunk.finish_reason:
+                    break
+        finally:
+            self._response_streams.pop(req.id, None)
 
     async def start(self) -> None:
         self._ws_client = await websockets.connect(
@@ -95,41 +108,38 @@ class AsyncStreamChatClient:
         self._receiver_task = asyncio.create_task(self._receiver())
 
     async def _sender(self) -> None:
-        try:
-            while self._ws_client and self._ws_client.open:
+        while self._ws_client and self._ws_client.open:
+            try:
                 chat_request = await self.requests.get()
 
                 await self._ws_client.send(chat_request.json())
-        except asyncio.CancelledError:
-            # TODO: log
-            ...
+            except asyncio.CancelledError:
+                # TODO: log
+                ...
 
     async def _receiver(self) -> None:
-        try:
-            while self._ws_client and self._ws_client.open:
-                try:
-                    raw_chunk = await self._ws_client.recv()
-                    chunk: ChatStreamMessage = ChatStreamMessage(
-                        **json.loads(raw_chunk)
-                    )
+        while self._ws_client and self._ws_client.open:
+            try:
+                raw_chunk = await self._ws_client.recv()
+                chunk: ChatStreamMessage = ChatStreamMessage(**json.loads(raw_chunk))
 
-                    logger.debug("received stream chunk", extra={"chunk": chunk})
+                logger.debug("received stream chunk", extra={"chunk": chunk})
 
-                    if chunk_buffer := self._response_streams.get(chunk.id):
-                        chunk_buffer.put_nowait(chunk)
-                        continue
+                if chunk_buffer := self._response_streams.get(chunk.id):
+                    chunk_buffer.put_nowait(chunk)
+                    continue
 
-                    self.response_chunks.put_nowait(chunk)
-                except pydantic.ValidationError:
-                    logger.error(
-                        "Failed to validate Glide API response. "
-                        "Please make sure Glide API and client versions are compatible",
-                        exc_info=True,
-                    )
-                except Exception as e:
-                    logger.exception(e)
-        except asyncio.CancelledError:
-            ...
+                self.response_chunks.put_nowait(chunk)
+            except pydantic.ValidationError:
+                logger.error(
+                    "Failed to validate Glide API response. "
+                    "Please make sure Glide API and client versions are compatible",
+                    exc_info=True,
+                )
+            except asyncio.CancelledError:
+                ...
+            except Exception as e:
+                logger.exception(e)
 
     async def stop(self) -> None:
         if self._sender_task:
