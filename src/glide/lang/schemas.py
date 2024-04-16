@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 
 from pydantic import Field
 
@@ -18,7 +18,10 @@ class FinishReason(str, Enum):
     # generation is finished successfully without interruptions
     COMPLETE = "complete"
     # generation is interrupted because of the length of the response text
-    LENGTH = "length"
+    MAX_TOKENS = "max_tokens"
+    CONTENT_FILTERED = "content_filtered"
+    ERROR = "error"
+    OTHER = "other"
 
 
 class LangRouter(Schema): ...
@@ -67,7 +70,7 @@ class ChatResponse(Schema):
     model_response: ModelResponse
 
 
-class StreamChatRequest(Schema):
+class ChatStreamRequest(Schema):
     id: ChatRequestId = Field(default_factory=lambda: str(uuid.uuid4()))
     message: ChatMessage
     message_history: List[ChatMessage] = Field(default_factory=list)
@@ -78,7 +81,6 @@ class StreamChatRequest(Schema):
 class ModelChunkResponse(Schema):
     metadata: Optional[Metadata] = None
     message: ChatMessage
-    finish_reason: Optional[FinishReason] = None
 
 
 class ChatStreamChunk(Schema):
@@ -86,23 +88,59 @@ class ChatStreamChunk(Schema):
     A response chunk of a streaming chat
     """
 
-    id: ChatRequestId
-    # TODO: should be required, needs to fix on the Glide side
-    created: Optional[datetime] = None
-    provider: Optional[ProviderName] = None
-    router: Optional[RouterId] = None
-    model: Optional[ModelName] = None
-
     model_id: str
-    metadata: Optional[Metadata] = None
+
+    provider_name: ProviderName
+    model_name: ModelName
+
     model_response: ModelChunkResponse
+    finish_reason: Optional[FinishReason] = None
 
 
 class ChatStreamError(Schema):
     id: ChatRequestId
     err_code: str
     message: str
+    finish_reason: Optional[FinishReason] = None
+
+
+class ChatStreamMessage(Schema):
+    id: ChatRequestId
+    created_at: datetime
     metadata: Optional[Metadata] = None
 
+    router_id: RouterId
 
-StreamResponse = Union[ChatStreamChunk, ChatStreamError]
+    chunk: Optional[ChatStreamChunk] = None
+    error: Optional[ChatStreamError] = None
+
+    @property
+    def finish_reason(self) -> Optional[FinishReason]:
+        if self.chunk and self.chunk.finish_reason:
+            return self.chunk.finish_reason
+
+        if self.error and self.error.finish_reason:
+            return self.error.finish_reason
+
+        return None
+
+    @property
+    def ended_with_err(self) -> Optional[ChatStreamError]:
+        if self.error and self.error.finish_reason:
+            return self.error
+
+        return None
+
+    @property
+    def content_chunk(self) -> Optional[str]:
+        """
+        Returns received text generation chunk.
+
+        Be careful with using this method to see if there is a chunk (rather than an error),
+        because content can be an empty string with some providers like OpenAI.
+        Better check for `self.chunk` in that case.
+        """
+        if not self.chunk:
+            return None
+
+        return self.chunk.model_response.message.content
