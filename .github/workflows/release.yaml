@@ -1,0 +1,35 @@
+---
+name: Release
+
+on:
+  workflow_call:
+
+  push:
+    tags:
+      - "*"
+
+jobs:
+  lint:
+    uses: ./.github/workflows/checks.yaml
+
+  release:
+    needs:
+      - lint
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v3"
+      - uses: "actions/setup-python@v4"
+        with:
+          python-version: "3.11"
+
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: "3.11"
+          cache: true
+
+      - name: "Publish Package"
+        run: "make publish"

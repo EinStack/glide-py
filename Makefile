@@ -27,3 +27,6 @@ lint: ## Lint source code
 
 build: ## Build the package
 	@pdm build
+
+publish: ## Publish the package
+	@pdm publish
