@@ -7,7 +7,7 @@ help:
 	@echo "🔧 Glide Python Client: Commands"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-check: ## Check source code without modifying it
+lint-check: ## Check source code without modifying it
 	@echo "🧹 Ruff"
 	@pdm run ruff $(SOURCE) $(TESTS)
 	@echo "🧹 Black"
