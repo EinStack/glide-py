@@ -55,7 +55,7 @@ class TokenUsage(Schema):
 
 
 class ModelResponse(Schema):
-    response_id: dict[str, str]
+    response_id: Dict[str, str]
     message: ChatMessage
     token_count: TokenUsage
 

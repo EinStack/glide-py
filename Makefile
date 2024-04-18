@@ -24,3 +24,6 @@ lint: ## Lint source code
 	@ruff --fix $(SOURCE) $(TESTS)
 	@echo "🧽 MyPy"
 	@pdm run mypy --pretty $(SOURCE) $(TESTS)
+
+build: ## Build the package
+	@pdm build

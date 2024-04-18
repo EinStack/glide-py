@@ -35,7 +35,7 @@ jobs:
       - name: "Linting"
         run: "make lint-check"
 
-      - name: "Build package & docs"
+      - name: "Build package"
         run: "make build"
 
 #      - name: "Run tests"
