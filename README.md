@@ -9,7 +9,6 @@
     <a href="https://artifacthub.io/packages/helm/einstack/glide"><img src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/einstack" alt="ArtifactHub" /></a>
     <a href="https://pypi.org/project/glide-client/"><img alt="PyPI - Downloads" src="https://img.shields.io/pypi/dm/glide-client"></a>
 </div>
-
 ---
 
 > [!Warning]
