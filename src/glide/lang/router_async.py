@@ -18,9 +18,15 @@ from glide.exceptions import (
     GlideClientError,
     GlideClientMismatch,
     GlideChatStreamError,
+    GlideServerError,
 )
 from glide.lang import schemas
-from glide.lang.schemas import ChatStreamRequest, ChatStreamMessage, ChatRequestId
+from glide.lang.schemas import (
+    ChatStreamRequest,
+    ChatStreamMessage,
+    ChatRequestId,
+    ChatError,
+)
 from glide.logging import logger
 from glide.typing import RouterId
 
@@ -214,33 +220,36 @@ class AsyncLangRouters:
         """
         Send a chat request to a specified language router
         """
+        headers = {}
+
+        if self._user_agent:
+            headers["User-Agent"] = self._user_agent
+
         try:
-            headers = {}
-
-            if self._user_agent:
-                headers["User-Agent"] = self._user_agent
-
             resp = await self._http_client.post(
                 f"/language/{router_id}/chat",
                 headers=headers,
                 json=request.dict(by_alias=True),
             )
 
+            if resp.is_error:
+                err_data = ChatError(**resp.json())
+
+                if resp.is_client_error:
+                    raise GlideClientError(err_data.message, err_data.name)
+
+                if resp.is_server_error:
+                    raise GlideServerError(err_data.message, err_data.name)
+
+            raw_resp = resp.json()
+
+            return schemas.ChatResponse(**raw_resp)
         except httpx.NetworkError as e:
             raise GlideUnavailable() from e
-
-        if not resp.is_success:
-            raise GlideClientError(
-                f"Failed to send a chat request: {resp.text} (status_code: {resp.status_code})"
-            )
-
-        try:
-            raw_response = resp.json()
-
-            return schemas.ChatResponse(**raw_response)
         except pydantic.ValidationError as err:
             raise GlideClientMismatch(
-                "Failed to validate Glide API response. Please make sure Glide API and client versions are compatible"
+                "Failed to validate Glide API response. "
+                "Please make sure Glide API and client versions are compatible"
             ) from err
 
     def stream_client(self, router_id: RouterId) -> AsyncStreamChatClient:

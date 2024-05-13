@@ -17,6 +17,22 @@ class GlideClientError(GlideError):
     Occurs when there is an issue with sending a Glide request
     """
 
+    def __init__(self, message: str, err_name: str) -> None:
+        super().__init__(message)
+
+        self.err_name = err_name
+
+
+class GlideServerError(GlideError):
+    """
+    Occurs when there is an issue with sending a Glide request related to Glide server issues
+    """
+
+    def __init__(self, message: str, err_name: str) -> None:
+        super().__init__(message)
+
+        self.err_name = err_name
+
 
 class GlideClientMismatch(GlideError):
     """

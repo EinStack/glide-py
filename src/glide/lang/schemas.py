@@ -14,6 +14,11 @@ ChatRequestId = str
 Metadata = Dict[str, Any]
 
 
+class ChatError(Schema):
+    name: str
+    message: str
+
+
 class FinishReason(str, Enum):
     # generation is finished successfully without interruptions
     COMPLETE = "complete"
