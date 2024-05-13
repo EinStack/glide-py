@@ -8,7 +8,7 @@ from typing import List, Optional, Dict, Any
 from pydantic import Field
 
 from glide.schames import Schema
-from glide.typing import RouterId, ProviderName, ModelName
+from glide.typing import RouterId, ProviderId, ModelName
 
 ChatRequestId = str
 Metadata = Dict[str, Any]
@@ -45,7 +45,7 @@ class ModelMessageOverride(Schema):
 class ChatRequest(Schema):
     message: ChatMessage
     message_history: List[ChatMessage] = Field(default_factory=list)
-    override: Optional[ModelMessageOverride] = None
+    override_params: Optional[ModelMessageOverride] = None
 
 
 class TokenUsage(Schema):
@@ -57,16 +57,16 @@ class TokenUsage(Schema):
 class ModelResponse(Schema):
     response_id: Dict[str, str]
     message: ChatMessage
-    token_count: TokenUsage
+    token_usage: TokenUsage
 
 
 class ChatResponse(Schema):
     id: ChatRequestId
-    created: datetime
-    provider: ProviderName
-    router: RouterId
+    created_at: datetime
+    provider_id: ProviderId
+    router_id: RouterId
     model_id: str
-    model: ModelName
+    model_name: ModelName
     model_response: ModelResponse
 
 
@@ -74,7 +74,7 @@ class ChatStreamRequest(Schema):
     id: ChatRequestId = Field(default_factory=lambda: str(uuid.uuid4()))
     message: ChatMessage
     message_history: List[ChatMessage] = Field(default_factory=list)
-    override: Optional[ModelMessageOverride] = None
+    override_params: Optional[ModelMessageOverride] = None
     metadata: Optional[Metadata] = None
 
 
@@ -90,7 +90,7 @@ class ChatStreamChunk(Schema):
 
     model_id: str
 
-    provider_name: ProviderName
+    provider_id: ProviderId
     model_name: ModelName
 
     model_response: ModelChunkResponse
@@ -99,7 +99,7 @@ class ChatStreamChunk(Schema):
 
 class ChatStreamError(Schema):
     id: ChatRequestId
-    err_code: str
+    name: str
     message: str
     finish_reason: Optional[FinishReason] = None
 

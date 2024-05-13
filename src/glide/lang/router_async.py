@@ -82,8 +82,8 @@ class AsyncStreamChatClient:
                 if err := message.ended_with_err:
                     # fail only on fatal errors that indicate stream stop
                     raise GlideChatStreamError(
-                        f"Chat stream {req.id} ended with an error: {err.message} (code: {err.err_code})",
-                        err.err_code,
+                        f"Chat stream {req.id} ended with an error ({err.name}): {err.message}",
+                        err.name,
                     )
 
                 yield message  # returns content chunk and some error messages

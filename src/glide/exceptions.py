@@ -29,7 +29,7 @@ class GlideChatStreamError(GlideError):
     Occurs when chat stream ends with an error
     """
 
-    def __init__(self, message: str, err_code: str) -> None:
+    def __init__(self, message: str, err_name: str) -> None:
         super().__init__(message)
 
-        self.err_code = err_code
+        self.err_name = err_name

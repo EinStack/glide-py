@@ -40,7 +40,7 @@ async def chat_stream() -> None:
                     continue
 
                 if err := message.error:
-                    print(f"💥ERR: {err.message} (code: {err.err_code})")
+                    print(f"💥ERR ({err.name}): {err.message}")
                     print("🧹 Restarting the stream")
                     continue
 
@@ -50,7 +50,7 @@ async def chat_stream() -> None:
 
         if last_msg and last_msg.chunk and last_msg.finish_reason:
             # LLM gen context
-            provider_name = last_msg.chunk.provider_name
+            provider_name = last_msg.chunk.provider_id
             model_name = last_msg.chunk.model_name
             finish_reason = last_msg.finish_reason
 
