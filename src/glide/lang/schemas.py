@@ -55,7 +55,7 @@ class TokenUsage(Schema):
 
 
 class ModelResponse(Schema):
-    response_id: Dict[str, str]
+    metadata: Dict[str, str]
     message: ChatMessage
     token_usage: TokenUsage
 
