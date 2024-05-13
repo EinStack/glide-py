@@ -113,7 +113,7 @@ class AsyncStreamChatClient:
 
                 await self._ws_client.send(chat_request.json())
             except asyncio.CancelledError:
-                # TODO: log
+                logger.debug("chat stream sender task is canceled")
                 break
 
     async def _receiver(self) -> None:
@@ -136,6 +136,7 @@ class AsyncStreamChatClient:
                     exc_info=True,
                 )
             except asyncio.CancelledError:
+                logger.debug("chat stream receiver task is canceled")
                 break
             except Exception as e:
                 logger.exception(e)
